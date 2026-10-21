@@ -18,7 +18,7 @@ class TextDataset:
     def __getitem__(self, idx: int):
         #tokens = [10, 20, 30, 40, 50, 60]
         token_block = self.token_arr[idx:idx + self.block_size]
-        shifted_block = self.token_arr[idx+1:self.block_size + 1]
+        shifted_block = self.token_arr[idx+1:idx + self.block_size + 1]
 
         return token_block, shifted_block
 
