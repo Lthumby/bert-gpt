@@ -1,0 +1,82 @@
+
+# ==========================================
+# Python
+# ==========================================
+
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Python packaging
+*.egg-info/
+build/
+dist/
+
+# ==========================================
+# IDE / Editor
+# ==========================================
+
+.vscode/
+.idea/
+.DS_Store
+
+# ==========================================
+# Environment Variables / Secrets
+# ==========================================
+
+.env
+.env.*
+!.env.example
+
+# ==========================================
+# Training Data
+# ==========================================
+
+# Large raw datasets
+data/raw/*
+!data/raw/.gitkeep
+
+# Processed NumPy datasets
+data/processed/*
+!data/processed/.gitkeep
+
+# ==========================================
+# Model Checkpoints
+# ==========================================
+
+checkpoints/
+*.ckpt
+*.pt
+*.pth
+*.safetensors
+
+# ==========================================
+# Experiment Outputs
+# ==========================================
+
+experiments/results.csv
+runs/
+logs/
+*.log
+
+# ==========================================
+# Testing / Cache
+# ==========================================
+
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# ==========================================
+# Jupyter Notebooks
+# ==========================================
+
+.ipynb_checkpoints/
