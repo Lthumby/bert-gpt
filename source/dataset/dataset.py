@@ -22,10 +22,12 @@ class TextDataset:
 
         return token_block, shifted_block
 
+
+"""
 if __name__ == "__main__":
     token_arr = np.load('data/processed/train.npy')
     t = TextDataset(token_arr, 3)
-    #print(t.token_arr) # (411899,) # = size, , = 1D]
+    print(t.token_arr) # (411899,) # = size, , = 1D]
 
     print("dataset len: ", len(t))
 
@@ -33,3 +35,4 @@ if __name__ == "__main__":
 
     print("original block:", x)
     print("shifted block :", y)
+"""
