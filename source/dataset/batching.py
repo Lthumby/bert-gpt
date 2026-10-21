@@ -20,14 +20,14 @@ def get_batch(dataset: TextDataset, batch_size:int, rng: np.random.Generator):
 
     return xbatch, ybatch
 
-tokens = np.arange(20)
-dataset = TextDataset(tokens, block_size=3)
+#tokens = np.arange(20)
+#dataset = TextDataset(tokens, block_size=3)
 
-rng = np.random.default_rng(42)
+#rng = np.random.default_rng(42)
 
-x, y = get_batch(dataset, batch_size=3, rng=rng)
+#x, y = get_batch(dataset, batch_size=3, rng=rng)
 
-print("X:", x)
-print("Y:", y)
-print("X shape:", x.shape)
-print("Y shape:", y.shape)
+#print("X:", x)
+#print("Y:", y)
+#print("X shape:", x.shape)
+#print("Y shape:", y.shape)
