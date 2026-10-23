@@ -3,14 +3,14 @@ import numpy as np
 
 class CrossEntropyLoss:
     def __init__(self):
-        pass
+       pass
 
     def forward(self, logits:np.ndarray, targets:np.ndarray): # -> single scalar loss
 
-        self.targets = targets.copy()
+        self.targets = targets.copy()   
+        self.orig_shape = logits.shape
         logits = logits - np.max(logits, axis=-1, keepdims=True) # [1,2,3] -> [-2, 1, 0] stabalizes
 
-        targ_arr = np.array([])
         # Soft-Max
         exp_logit = np.exp(logits) # e ^ zi
 
@@ -19,16 +19,15 @@ class CrossEntropyLoss:
         soft_prob = exp_logit / sum_exp_logit
         self.soft_prob = soft_prob.copy()   
 
-        probs_2d = soft_prob.reshape(-1, soft_prob.shape[-1])
-        targs_1d = targets.reshape(-1) # dims are 3d, so fix to 2d to use np.arange
+        logits_2d = logits.reshape(-1, logits.shape[-1]) # flatten logits
+        targs_1d = targets.reshape(-1) # flatten targets
 
-        targ_arr = probs_2d[np.arange(len(targs_1d)), targs_1d] 
+        target_logits = logits_2d[np.arange(len(targs_1d)), targs_1d]
+        log_sum_exp = np.log(sum_exp_logit.reshape(-1))
 
-        targ_arr = -np.log(targ_arr)
+        loss = np.mean(log_sum_exp - target_logits)
 
-    
-        return np.mean(targ_arr)
-
+        return loss
 
     def backward(self):
 
@@ -48,21 +47,3 @@ class CrossEntropyLoss:
 
 
 
-
-
-if __name__ == "__main__":
-    l = CrossEntropyLoss()
-
-    probabilities = np.array([
-    [0.65, 0.25, 0.10],
-    [0.15, 0.70, 0.15],
-    [0.20, 0.30, 0.50]
-
-    ])  
-    ph = np.array([])
-
-    targets = np.array([0, 2, 1])
-
-    tp = np.add.at(ph, targets, max(probabilities))
-
-    print(tp)
