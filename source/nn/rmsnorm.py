@@ -30,7 +30,7 @@ class RMSNorm:
         return output
     
     def backward(self, grad_output:np.ndarray):
-        self.grad_gamma += np.sum(grad_output * self.normalized, axis=(0,1))
+        self.grad_gamma += np.sum(grad_output * self.normalized, axis=tuple(range(grad_output.ndim - 1)))
         grad_normalized = grad_output * self.gamma
         dot = np.sum(grad_normalized * self.x, axis=-1, keepdims=True)
 
@@ -39,6 +39,13 @@ class RMSNorm:
         return grad_input 
 
 
+    def zero_grad(self):
+        self.grad_gamma.fill(0)
+
+    def parameters(self):
+        return [
+            (self.gamma, self.grad_gamma, False)
+        ]
 
 if __name__ == "__main__":
     rmsnorm = RMSNorm(4)
@@ -50,6 +57,9 @@ if __name__ == "__main__":
 
     output = rmsnorm.forward(x)
 
-    print("Input:", x)
-    print("Output:", output)
-    print("Gamma:", rmsnorm.gamma)
+    grad_output = np.ones_like(output)
+    grad_input = rmsnorm.backward(grad_output)
+
+    print("Forward:", output)
+    print("Input gradients:", grad_input)
+    print("Gamma gradients:", rmsnorm.grad_gamma)
