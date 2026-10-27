@@ -1,6 +1,6 @@
 import numpy as np
 from nn.linear import Linear 
-
+from nn.rope import RoPE
 class CausalSelfAttention:
     def __init__(self, embedding_dim:int, head_dim:int, rng:np.random.Generator):
         self.embedding_dim = embedding_dim
@@ -10,14 +10,17 @@ class CausalSelfAttention:
         self.key = Linear(embedding_dim, head_dim, rng)
         self.value = Linear(embedding_dim, head_dim, rng)
 
+        self.rope = RoPE(head_dim)
 
     def forward(self, x:np.ndarray): 
         Q = self.query.forward(x)
         K = self.key.forward(x)
         V = self.value.forward(x)
 
-        self.K = K
-        self.Q = Q
+        Q = self.rope.forward(Q)
+        K = self.rope.forward(K)
+
+        
         # Scores = (QK^t) / sqrt(d k)
 
         k_transposed = np.swapaxes(K, -1, -2) # -1: last dim, -2: second to last dim
@@ -29,21 +32,22 @@ class CausalSelfAttention:
         # mask
         T = x.shape[1] # sequence length
         mask = np.tril(np.ones((T,T), dtype=bool))
-        self.mask = mask
         scores = np.where(mask, scores, -np.inf)
 
         # attention softmax
 
         stable_scores = scores - np.max(scores, axis=-1, keepdims=True)
-
         exp_scores = np.exp(stable_scores)
 
         attention_weights = exp_scores / np.sum(exp_scores, axis=-1, keepdims=True)
-        self.attention_weights = attention_weights
-        self.V = V
-
         output = attention_weights @ V
 
+        self.mask = mask
+        self.K = K
+        self.Q = Q
+        self.V = V
+        self.attention_weights = attention_weights
+                
         return output
 
     def backward(self, grad_output):
@@ -68,8 +72,11 @@ class CausalSelfAttention:
         raw_grad = grad_scores / np.sqrt(self.head_dim)
 
         grad_Q = raw_grad @ self.K
-
         grad_K = np.swapaxes(raw_grad, -1,-2) @ self.Q
+
+        # reverse rotation <- RoPE
+        grad_Q = self.rope.backward(grad_Q)
+        grad_K = self.rope.backward(grad_K)
 
         grad_x_Q = self.query.backward(grad_Q)
         grad_x_K = self.key.backward(grad_K)
