@@ -8,11 +8,17 @@ from nn.rope import RoPE
 class MultiHeadAttention:
 
     def __init__(self, embedding_dim:int, num_heads:int, rng:np.random.Generator):
-        if embedding_dim % num_heads != 0:
-            raise ValueError("embedding_dim must be divisible by num_heads")
+        if not isinstance(embedding_dim, int) or embedding_dim <= 0:
+            raise ValueError("embedding_dim must be a positive integer")
 
-        if num_heads <= 0:
+        if not isinstance(num_heads, int) or num_heads <= 0:
             raise ValueError("num_heads must be a positive integer")
+
+        if embedding_dim % num_heads != 0:
+            raise ValueError(
+                "embedding_dim must be divisible by num_heads"
+            )
+
         self.embedding_dim = embedding_dim
         self.num_heads = num_heads
         self.head_dim = embedding_dim // num_heads # floor division
