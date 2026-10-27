@@ -56,13 +56,70 @@ class MultiHeadAttention:
         context = context.reshape(B, T, D)
 
         output = self.output_projection.forward(context)
+
+        self.attention_weights = attention_weights
+        self.Q = Q
+        self.V = V
+        self.K = K
+        self.mask = mask
         return output
 
 
     def backward(self, grad_output:np.ndarray):
-        pass
+        grad_context = self.output_projection.backward(grad_output)
+        B,T,D = grad_context.shape
+        grad_context = grad_context.reshape(B,T, self.num_heads, self.head_dim)
+        grad_context = grad_context.transpose(0,2, 1, 3)
 
+        grad_V = (
+            np.swapaxes(self.attention_weights, -1, -2) @ grad_context
+        )
 
+        grad_attention = (
+            grad_context @ np.swapaxes(self.V, -1, -2)
+        )
+
+        P = self.attention_weights
+        row_sum = np.sum(P * grad_attention,axis=-1, keepdims=True)
+
+        grad_scores = P * (grad_attention - row_sum)
+        grad_scores = np.where(self.mask, grad_scores, 0.0)
+
+        raw_grad = grad_scores / np.sqrt(self.head_dim)
+
+        grad_Q = raw_grad @ self.K
+        grad_K = np.swapaxes(raw_grad, -1,-2) @ self.Q
+
+        grad_Q = self.rope.backward(grad_Q)
+        grad_K = self.rope.backward(grad_K)
+
+        grad_qkv = np.stack([grad_Q, grad_K, grad_V], axis=0)
+        grad_qkv = grad_qkv.transpose(1, 3, 0, 2, 4)
+        grad_qkv = grad_qkv.reshape(B,T, 3*D) # back to original
+
+        grad_input = self.qkv.backward(grad_qkv)
+
+        return grad_input
+
+    def zero_grad(self):
+        self.qkv.zero_grad()
+        self.output_projection.zero_grad()
+
+    def parameters(self):
+        return [
+            (self.qkv.weights, self.qkv.grad_weights, True),
+            (self.qkv.bias, self.qkv.grad_bias, False),
+            (
+                self.output_projection.weights,
+                self.output_projection.grad_weights,
+                True
+            ),
+            (
+                self.output_projection.bias,
+                self.output_projection.grad_bias,
+                False
+            ),
+        ]
 
 
 
