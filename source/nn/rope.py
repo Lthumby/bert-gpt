@@ -1,7 +1,7 @@
 import numpy as np
 
 
-class Rope:
+class RoPE:
     def __init__(self, head_dim:int, base:float= 10000.0):
         if head_dim <= 0 or head_dim % 2 != 0:
             raise ValueError("head_dim must be positive and even")
@@ -38,12 +38,30 @@ class Rope:
         output[..., 0::2] = rotated_even
         output[...,1::2] = rotated_odd
 
+
+        self.cos = cos
+        self.sin = sin
         return output
 
 
     def backward(self, grad_output:np.ndarray):
-        pass
 
+        # dX = R^T dY
+        grad_even = grad_output[...,0::2]
+        grad_odd = grad_output[...,1::2]
+
+        # derivative rotation: xeven * cos(theta) + xodd*sin(theta) and -xeven*sin(theta) +xodd*cos(theta)
+        dx_even = grad_even * self.cos + grad_odd*self.sin
+        dx_odd = -grad_even * self.sin + grad_odd*self.cos
+
+        grad_input = np.empty_like(grad_output)
+
+        grad_input[...,0::2] = dx_even
+        grad_input[...,1::2] = dx_odd
+
+        return grad_input
+
+"""
 if __name__ == "__main__":
     Q = np.array([
         [
@@ -51,10 +69,10 @@ if __name__ == "__main__":
             [2.0, 1.0, 4.0, 3.0]   # apple: position 1
         ]
     ])
-    R = Rope(4)
+    R = RoPE(4)
     print(R.frequencies)
     print(R.forward(Q))
-
+"""
 
 
 
