@@ -3,22 +3,19 @@ from dataset.dataset import TextDataset
 
 
 def get_batch(dataset: TextDataset, batch_size:int, rng: np.random.Generator):
-    valid_starts = len(dataset)
-    idx = rng.integers(0, len(dataset), size=batch_size)
 
-    xlist = []
-    ylist = []
+    tokens = dataset.token_arr
+    T = dataset.block_size
 
-    for i in idx:
-        x,y = dataset[int(i)]
-        xlist.append(x)
-        ylist.append(y)
-
-    xbatch = np.stack(xlist)
-    ybatch = np.stack(ylist)
+    starts = rng.integers(low=0, high=len(dataset), size=batch_size)
+    offsets = np.arange(T)
 
 
-    return xbatch, ybatch
+    xbatch = tokens[starts[:,None] + offsets]
+    ybatch = tokens[starts[:,None] + offsets + 1]
+
+
+    return (xbatch.astype(np.int64), ybatch.astype(np.int64))
 
 #tokens = np.arange(20)
 #dataset = TextDataset(tokens, block_size=3)
