@@ -1,7 +1,5 @@
 import numpy as np
 
-from tokenizer.tokenizer import Tokenizer
-
 class TextDataset:
 
 
